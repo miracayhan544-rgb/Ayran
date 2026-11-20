@@ -1068,5 +1068,62 @@ export const BRANDS: Brand[] = [
         description: 'Mobil radyo, LTE/5G bantları ve pil kullanım bilgilerini gösterir.'
       }
     ]
+  },
+  {
+    id: 'lenovo',
+    name: 'Lenovo',
+    country: 'Çin',
+    osName: 'ZUI / Lenovo Android (Legion UI)',
+    tagline: 'Legion oyuncu telefonları, Yoga/Tab serisi dev OLED tabletler ve ZUI PC Modu.',
+    ecosystemSummary:
+      'Vibe P1 ve P2’nin efsanevi fiziksel pil tasarruf anahtarlarından yatay mimarili Legion oyuncu telefonlarına, günümüzde ise Legion Tab (Y700) ve HDMI/DisplayPort girişli Tab Extreme / Yoga Tab tabletlerine uzanan köklü donanım üreticisidir.',
+    accentHex: '#E11D48',
+    foundedYear: 1984,
+    osHiddenFeatures: [
+      {
+        id: 'lenovo-pc-mode-freestyle',
+        title: 'ZUI PC Modu ve Lenovo Freestyle (Kablosuz İkinci Ekran)',
+        category: 'Verimlilik',
+        howToAccess: 'Ayarlar > Üretkenlik Modu / Lenovo Freestyle Uygulaması',
+        description:
+          'Lenovo tabletleri tek dokunuşla görev çubuklu çoklu pencere masaüstüne geçirir veya Windows bilgisayarınıza kablosuz dokunmatik ikinci ekran olarak bağlar.'
+      },
+      {
+        id: 'lenovo-bypass-charging',
+        title: 'Legion Assistant Doğrudan Besleme (Bypass Charging)',
+        category: 'Batarya',
+        howToAccess: 'Oyun içi yan menü (Legion Assistant) > Şarj Atlama (Bypass)',
+        description:
+          'Şarj kablosu takılı oyun oynarken enerjiyi pile uğratmadan doğrudan işlemci ve ekrana iletir; ısınmayı ve batarya döngü aşınmasını ciddi oranda azaltır.'
+      },
+      {
+        id: 'lenovo-reading-mode',
+        title: 'Tek Tuş Çoklu Pencere ve E-Mürekkep (Monokrom) Okuma Modu',
+        category: 'Sistem',
+        howToAccess: 'Hızlı Ayarlar > Okuma Modu veya pencere üstündeki 3 nokta simgesi',
+        description:
+          'Ekranı kağıt benzeri siyah-beyaz veya sıcak tonlu okuma moduna alır; büyük tablet ekranlarında aynı anda 4 uygulamayı yüzer pencere olarak açar.'
+      }
+    ],
+    secretCodes: [
+      {
+        code: '####1111#',
+        title: 'Lenovo Fabrika Donanım Test Menüsü',
+        description:
+          'Lenovo telefon ve hücresel tabletlerde ekran pikseli, dokunmatik, jiroskop, kamera ve hoparlör testlerini başlatır.'
+      },
+      {
+        code: '####0000#',
+        title: 'Lenovo Derleme ve Donanım Revizyon Bilgisi',
+        description:
+          'Cihazın dahili yazılım sürümünü, bölge kodunu ve anakart revizyon bilgisini gösterir.'
+      },
+      {
+        code: '*#*#4636#*#*',
+        title: 'Android Test ve Pil İstatistikleri',
+        description:
+          'Pil sıcaklığı, voltaj, Wi-Fi/LTE/5G sinyal kalitesi ve uygulama kullanım sürelerini listeler.'
+      }
+    ]
   }
 ];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ArrowUpRight } from 'lucide-react';
+import { X, ArrowUpRight, Mail } from 'lucide-react';
 import { Brand, PhoneModel } from '../types/phone';
 
 interface CompareViewProps {
@@ -9,6 +9,7 @@ interface CompareViewProps {
   onRemovePhone: (phoneId: string) => void;
   onAddPhone: (phoneId: string) => void;
   onSelectPhone: (phone: PhoneModel) => void;
+  onShareComparisonViaGmail?: () => void;
 }
 
 export const CompareView: React.FC<CompareViewProps> = ({
@@ -18,6 +19,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
   onRemovePhone,
   onAddPhone,
   onSelectPhone,
+  onShareComparisonViaGmail,
 }) => {
   const getBrandName = (brandId: string) =>
     brands.find((b) => b.id === brandId)?.name ?? brandId;
@@ -66,23 +68,36 @@ export const CompareView: React.FC<CompareViewProps> = ({
           </p>
         </div>
 
-        {selectedPhones.length < 3 && (
-          <select
-            aria-label="Karşılaştırmaya telefon ekle"
-            value=""
-            onChange={(e) => {
-              if (e.target.value) onAddPhone(e.target.value);
-            }}
-            className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-          >
-            <option value="">+ Karşılaştırmaya Model Ekle...</option>
-            {availableToAdd.map((p) => (
-              <option key={p.id} value={p.id}>
-                {getBrandName(p.brandId)} — {p.name} ({p.releaseYear})
-              </option>
-            ))}
-          </select>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {selectedPhones.length > 0 && onShareComparisonViaGmail && (
+            <button
+              type="button"
+              onClick={onShareComparisonViaGmail}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold text-zinc-900 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 whitespace-nowrap"
+            >
+              <Mail className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+              Gmail ile Gönder
+            </button>
+          )}
+
+          {selectedPhones.length < 3 && (
+            <select
+              aria-label="Karşılaştırmaya telefon ekle"
+              value=""
+              onChange={(e) => {
+                if (e.target.value) onAddPhone(e.target.value);
+              }}
+              className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            >
+              <option value="">+ Karşılaştırmaya Model Ekle...</option>
+              {availableToAdd.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {getBrandName(p.brandId)} — {p.name} ({p.releaseYear})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {selectedPhones.length === 0 ? (

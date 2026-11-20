@@ -10,6 +10,10 @@ import { PHONES_EXPANDED_4 } from './phonesExpanded4';
 import { PHONES_EXPANDED_5 } from './phonesExpanded5';
 import { TABLETS_DATA } from './tablets';
 import { TABLETS_DATA_2 } from './tablets2';
+import { TABLETS_DATA_3 } from './tablets3';
+import { TABLETS_DATA_4 } from './tablets4';
+import { TABLETS_DATA_5 } from './tablets5';
+import { LENOVO_DEVICES } from './lenovoDevices';
 import { Brand, PhoneModel } from '../types/phone';
 
 export const ALL_BRANDS: Brand[] = BRANDS;
@@ -26,6 +30,10 @@ export const ALL_PHONES: PhoneModel[] = [
   ...PHONES_EXPANDED_5,
   ...TABLETS_DATA,
   ...TABLETS_DATA_2,
+  ...TABLETS_DATA_3,
+  ...TABLETS_DATA_4,
+  ...TABLETS_DATA_5,
+  ...LENOVO_DEVICES,
 ].sort((a, b) => b.releaseYear - a.releaseYear || a.name.localeCompare(b.name, 'tr'));
 
 export function isTabletModel(model: PhoneModel): boolean {

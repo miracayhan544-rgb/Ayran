@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { User } from 'firebase/auth';
 import { Search, Sun, Moon, Contrast, ChevronRight, X, ArrowUpDown } from 'lucide-react';
 import { ALL_BRANDS, ALL_PHONES, isTabletModel } from './data';
 import { Brand, PhoneEra, PhoneModel, ThemeMode } from './types/phone';
@@ -9,6 +10,21 @@ import { HiddenFeaturesView } from './components/HiddenFeaturesView';
 import { SecretCodesView } from './components/SecretCodesView';
 import { CompareView } from './components/CompareView';
 import { PhoneDetailModal } from './components/PhoneDetailModal';
+import { GmailDraftPreset, GmailView } from './components/GmailView';
+import { GmailOnboardingModal } from './components/GmailOnboardingModal';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import {
+  getAccessToken,
+  googleSignIn,
+  initAuth,
+  logout,
+} from './services/gmailAuth';
+import {
+  formatComparisonForEmail,
+  formatPhoneSpecsForEmail,
+} from './services/gmailApi';
+
+const GMAIL_ONBOARDING_KEY = 'telefonlab-gmail-onboarding-v1';
 
 const HERO_IMG = '/src/assets/images/hero_flagship_lineup_1795182943451.jpg';
 const CAMERA_IMG = '/src/assets/images/camera_module_macro_1795182942783.jpg';
@@ -38,6 +54,69 @@ export default function App() {
   const [selectedPhone, setSelectedPhone] = useState<PhoneModel | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [imgErrorMap, setImgErrorMap] = useState<Record<string, boolean>>({});
+
+  // Gmail Auth & İlk Açılış (First-Run) Durumu
+  const [gmailUser, setGmailUser] = useState<User | null>(null);
+  const [gmailNeedsAuth, setGmailNeedsAuth] = useState<boolean>(true);
+  const [gmailTokenVersion, setGmailTokenVersion] = useState<number>(0);
+  const [gmailAuthLoading, setGmailAuthLoading] = useState<boolean>(false);
+  const [gmailAuthError, setGmailAuthError] = useState<string | null>(null);
+  const [gmailDraftPreset, setGmailDraftPreset] = useState<GmailDraftPreset | null>(null);
+  const [showGmailOnboarding, setShowGmailOnboarding] = useState<boolean>(() => {
+    try {
+      return window.localStorage.getItem(GMAIL_ONBOARDING_KEY) !== '1';
+    } catch {
+      return true;
+    }
+  });
+
+  const markGmailOnboardingSeen = useCallback(() => {
+    setShowGmailOnboarding(false);
+    try {
+      window.localStorage.setItem(GMAIL_ONBOARDING_KEY, '1');
+    } catch {
+      // Ignore storage access restrictions in sandboxed iframes
+    }
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = initAuth((user) => {
+      setGmailUser(user);
+      if (user) {
+        const hasToken = Boolean(getAccessToken());
+        setGmailNeedsAuth(!hasToken);
+        if (hasToken) {
+          markGmailOnboardingSeen();
+        }
+      } else {
+        setGmailNeedsAuth(true);
+      }
+    });
+    return () => unsubscribe();
+  }, [markGmailOnboardingSeen]);
+
+  const handleGmailSignIn = useCallback(async () => {
+    setGmailAuthLoading(true);
+    setGmailAuthError(null);
+    try {
+      await googleSignIn();
+      setGmailNeedsAuth(false);
+      setGmailTokenVersion((v) => v + 1);
+      markGmailOnboardingSeen();
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : 'Google ile oturum açılırken hata oluştu.';
+      setGmailAuthError(msg);
+    } finally {
+      setGmailAuthLoading(false);
+    }
+  }, [markGmailOnboardingSeen]);
+
+  const handleGmailSignOut = useCallback(async () => {
+    await logout();
+    setGmailNeedsAuth(true);
+    setGmailAuthError(null);
+  }, []);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -175,12 +254,35 @@ export default function App() {
     []
   );
 
+  const handleSharePhoneViaGmail = (phone: PhoneModel) => {
+    const brand = ALL_BRANDS.find((b) => b.id === phone.brandId);
+    const formatted = formatPhoneSpecsForEmail(phone, brand);
+    setGmailDraftPreset({
+      subject: formatted.subject,
+      body: formatted.body,
+    });
+    setSelectedPhone(null);
+    setActiveBrandId(null);
+    setActiveTab('gmail');
+  };
+
+  const handleShareComparisonViaGmail = () => {
+    if (comparePhones.length === 0) return;
+    const formatted = formatComparisonForEmail(comparePhones, ALL_BRANDS);
+    setGmailDraftPreset({
+      subject: formatted.subject,
+      body: formatted.body,
+    });
+    setActiveTab('gmail');
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 text-zinc-900 transition-colors dark:bg-zinc-950 dark:text-zinc-100">
       <Header
         activeTab={activeTab}
         onTabChange={setActiveTab}
         compareCount={comparePhones.length}
+        gmailConnected={Boolean(gmailUser) && !gmailNeedsAuth}
       />
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -250,28 +352,34 @@ export default function App() {
         )}
 
         {/* Araç Çubuğu: Arama, Dönem Filtresi ve Tema Değiştirici */}
-        <div className="oled-surface mb-6 flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4 lg:flex-row lg:items-center lg:justify-between dark:border-zinc-800 dark:bg-zinc-900/50">
-          <div className="relative flex-1 max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Marka, model, işlemci, kamera veya gizli özellik ara..."
-              aria-label="Telefon, marka veya gizli özellik ara"
-              className="w-full rounded-lg border border-zinc-300 bg-zinc-50 py-2 pl-9 pr-8 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-600 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                aria-label="Aramayı temizle"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+        <div
+          className={`oled-surface mb-6 flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4 lg:flex-row lg:items-center ${
+            activeTab === 'gmail' ? 'lg:justify-end' : 'lg:justify-between'
+          } dark:border-zinc-800 dark:bg-zinc-900/50`}
+        >
+          {activeTab !== 'gmail' && (
+            <div className="relative flex-1 max-w-md">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Marka, model, işlemci, kamera veya gizli özellik ara..."
+                aria-label="Telefon, marka veya gizli özellik ara"
+                className="w-full rounded-lg border border-zinc-300 bg-zinc-50 py-2 pl-9 pr-8 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-blue-600 focus:outline-none dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  aria-label="Aramayı temizle"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-2">
             {activeTab === 'brands' && (
@@ -494,6 +602,24 @@ export default function App() {
             onRemovePhone={(id) => handleToggleCompare(id)}
             onAddPhone={(id) => handleToggleCompare(id)}
             onSelectPhone={setSelectedPhone}
+            onShareComparisonViaGmail={handleShareComparisonViaGmail}
+          />
+        )}
+
+        {activeTab === 'gmail' && (
+          <GmailView
+            user={gmailUser}
+            needsAuth={gmailNeedsAuth}
+            tokenVersion={gmailTokenVersion}
+            authLoading={gmailAuthLoading}
+            authError={gmailAuthError}
+            onSignIn={handleGmailSignIn}
+            onSignOut={handleGmailSignOut}
+            onRequireReauth={() => setGmailNeedsAuth(true)}
+            allPhones={ALL_PHONES}
+            brands={ALL_BRANDS}
+            draftPreset={gmailDraftPreset}
+            onClearDraftPreset={() => setGmailDraftPreset(null)}
           />
         )}
       </main>
@@ -535,7 +661,28 @@ export default function App() {
         onClose={() => setSelectedPhone(null)}
         onToggleCompare={handleToggleCompare}
         onCopyCode={handleCopyCode}
+        onShareViaGmail={handleSharePhoneViaGmail}
       />
+
+      {/* İlk Açılışta Gmail Bağlantısı Sor */}
+      <GmailOnboardingModal
+        open={showGmailOnboarding && (!gmailUser || gmailNeedsAuth)}
+        loading={gmailAuthLoading}
+        error={gmailAuthError}
+        onConnect={() => {
+          void handleGmailSignIn().then(() => {
+            if (getAccessToken()) {
+              setActiveTab('gmail');
+            }
+          });
+        }}
+        onSkip={() => {
+          setGmailAuthError(null);
+          markGmailOnboardingSeen();
+        }}
+      />
+
+      <OfflineIndicator />
 
       {copiedCode && (
         <div

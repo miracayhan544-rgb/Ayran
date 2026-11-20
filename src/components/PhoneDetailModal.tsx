@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { X, Copy, Check, Plus, Minus } from 'lucide-react';
+import { X, Copy, Check, Plus, Minus, Mail } from 'lucide-react';
 import { Brand, PhoneModel } from '../types/phone';
 
 interface PhoneDetailModalProps {
@@ -11,6 +11,7 @@ interface PhoneDetailModalProps {
   onClose: () => void;
   onToggleCompare: (phoneId: string) => void;
   onCopyCode: (code: string) => void;
+  onShareViaGmail?: (phone: PhoneModel) => void;
 }
 
 export const PhoneDetailModal: React.FC<PhoneDetailModalProps> = ({
@@ -22,6 +23,7 @@ export const PhoneDetailModal: React.FC<PhoneDetailModalProps> = ({
   onClose,
   onToggleCompare,
   onCopyCode,
+  onShareViaGmail,
 }) => {
   useEffect(() => {
     if (!phone) return;
@@ -136,30 +138,42 @@ export const PhoneDetailModal: React.FC<PhoneDetailModalProps> = ({
           <p className="font-mono text-xs text-zinc-600 dark:text-zinc-400 tabular-nums">
             {phone.highlightSpec}
           </p>
-          <button
-            type="button"
-            disabled={!isCompared && !canAddCompare}
-            onClick={() => onToggleCompare(phone.id)}
-            className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
-              isCompared
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : canAddCompare
-                ? 'border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800'
-                : 'cursor-not-allowed border border-zinc-200 text-zinc-400 dark:border-zinc-800 dark:text-zinc-600'
-            }`}
-          >
-            {isCompared ? (
-              <>
-                <Minus className="h-3.5 w-3.5" />
-                Karşılaştırmadan Çıkar
-              </>
-            ) : (
-              <>
-                <Plus className="h-3.5 w-3.5" />
-                Karşılaştırmaya Ekle
-              </>
+          <div className="flex flex-wrap items-center gap-2">
+            {onShareViaGmail && (
+              <button
+                type="button"
+                onClick={() => onShareViaGmail(phone)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-900 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800 whitespace-nowrap shrink-0 transition-colors"
+              >
+                <Mail className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                Gmail ile Gönder
+              </button>
             )}
-          </button>
+            <button
+              type="button"
+              disabled={!isCompared && !canAddCompare}
+              onClick={() => onToggleCompare(phone.id)}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
+                isCompared
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : canAddCompare
+                  ? 'border border-zinc-300 bg-white text-zinc-900 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800'
+                  : 'cursor-not-allowed border border-zinc-200 text-zinc-400 dark:border-zinc-800 dark:text-zinc-600'
+              }`}
+            >
+              {isCompared ? (
+                <>
+                  <Minus className="h-3.5 w-3.5" />
+                  Karşılaştırmadan Çıkar
+                </>
+              ) : (
+                <>
+                  <Plus className="h-3.5 w-3.5" />
+                  Karşılaştırmaya Ekle
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Teknik Özellikler */}

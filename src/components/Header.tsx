@@ -1,23 +1,27 @@
 import React from 'react';
+import { PWAInstallButton } from './PWAInstallButton';
 
-export type ActiveTab = 'brands' | 'models' | 'hidden' | 'codes' | 'compare';
+export type ActiveTab = 'brands' | 'models' | 'hidden' | 'codes' | 'compare' | 'gmail';
 
 interface HeaderProps {
   activeTab: ActiveTab;
   onTabChange: (tab: ActiveTab) => void;
   compareCount: number;
+  gmailConnected?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onTabChange,
   compareCount,
+  gmailConnected = false,
 }) => {
   const navItems: { id: ActiveTab; label: string }[] = [
     { id: 'brands', label: 'Markalar' },
     { id: 'models', label: 'Tüm Modeller' },
     { id: 'hidden', label: 'Gizli Özellikler' },
     { id: 'codes', label: 'Gizli Kodlar' },
+    { id: 'gmail', label: 'Gmail' },
   ];
 
   return (
@@ -42,19 +46,27 @@ export const Header: React.FC<HeaderProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => onTabChange(item.id)}
-                className={`py-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-colors border-b-2 ${
+                className={`inline-flex items-center gap-1.5 py-1.5 text-sm font-medium whitespace-nowrap shrink-0 transition-colors border-b-2 ${
                   isActive
                     ? 'border-blue-600 text-zinc-950 dark:border-blue-500 dark:text-white'
                     : 'border-transparent text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100'
                 }`}
               >
-                {item.label}
+                <span>{item.label}</span>
+                {item.id === 'gmail' && gmailConnected && (
+                  <span
+                    className="h-2 w-2 rounded-full bg-emerald-500"
+                    title="Gmail bağlı"
+                    aria-label="Gmail bağlı"
+                  />
+                )}
               </button>
             );
           })}
         </nav>
 
-        <div className="flex items-center shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          <PWAInstallButton />
           <button
             type="button"
             onClick={() => onTabChange('compare')}
@@ -80,13 +92,16 @@ export const Header: React.FC<HeaderProps> = ({
               key={item.id}
               type="button"
               onClick={() => onTabChange(item.id)}
-              className={`text-xs font-medium whitespace-nowrap shrink-0 py-1 ${
+              className={`inline-flex items-center gap-1.5 text-xs font-medium whitespace-nowrap shrink-0 py-1 ${
                 isActive
                   ? 'text-blue-600 dark:text-blue-400 font-semibold'
                   : 'text-zinc-600 dark:text-zinc-400'
               }`}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {item.id === 'gmail' && gmailConnected && (
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              )}
             </button>
           );
         })}
