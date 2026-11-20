@@ -1,0 +1,6 @@
+{
+  "name": "Cihaz Atlası — Telefon Özellikleri ve Gizli Yetenekler",
+  "description": "Tüm akıllı telefon markalarının ayrı ayrı teknik özellikleri, gizli sistem ayarları, geliştirici ipuçları ve servis kodları rehberi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
